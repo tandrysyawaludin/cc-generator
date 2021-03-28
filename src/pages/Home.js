@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import asyncSeries from "async/series";
+import asyncParallel from "async/parallel";
 import americanExpress from "../assets/images/american-express.png";
 import discover from "../assets/images/discover.png";
 import mastercard from "../assets/images/mastercard.png";
@@ -40,16 +42,41 @@ const creditCardProvider = [
 const Home = () => {
   const [data, setData] = useState({});
 
-  useEffect(() => {
-    console.log("bangsat", data);
-  });
-
   const onChangeInput = (event) => {
     const { value, name } = event.target || {};
+    let dataObj = {
+      realValue: value,
+      dataTemp: data,
+      trimmedValue: (value || "").trim(),
+    };
 
-    let realValue = value;
-    let dataTemp = data;
-    let trimmedValue = (realValue || "").trim();
+    asyncSeries(
+      {
+        isValidInput: function (callback) {
+          dataObj = validateInput(dataObj, name);
+          callback(null, 1);
+        },
+        setDataSuccess: function (callback) {
+          setData({
+            ...dataObj.dataTemp,
+            ...{
+              [name]: {
+                forImg: dataObj.trimmedValue,
+                forInput: dataObj.realValue,
+              },
+            },
+          });
+          callback(null, 2);
+        },
+      },
+      function (err, results) {
+        console.info("asyncSeries res: ", results);
+      }
+    );
+  };
+
+  const validateInput = ({ realValue, trimmedValue, dataTemp }, name) => {
+    const { cardnumber, cardholder, expiration, securitycode } = dataTemp;
 
     if (name === "securitycode") {
       realValue = realValue.replace(/./g, "*");
@@ -59,27 +86,32 @@ const Home = () => {
       )}`;
     } else if (name === "cardnumber") {
       const cardNumberObj = formatCardNumber(trimmedValue);
+      const userData = {
+        cardholder,
+        cardnumber,
+        expiration,
+        securitycode,
+      };
 
       realValue = cardNumberObj.value;
       trimmedValue = cardNumberObj.masked;
       dataTemp =
-        creditCardProvider.filter(({ pattern }) =>
-          pattern.test(realValue)
-        )[0] || {};
+        {
+          ...creditCardProvider.filter(({ pattern }) =>
+            pattern.test(realValue)
+          )[0],
+          ...userData,
+        } || userData;
     } else if (name === "expiration") {
       realValue = formatDate(realValue);
       trimmedValue = realValue;
     }
 
-    setData({
-      ...dataTemp,
-      ...{
-        [name]: {
-          forImg: trimmedValue,
-          forInput: realValue,
-        },
-      },
-    });
+    return {
+      realValue,
+      trimmedValue,
+      dataTemp,
+    };
   };
 
   const formatDate = (value) => {
@@ -127,11 +159,39 @@ const Home = () => {
         };
   };
 
+  const onSubmitData = () => {
+    const { cardholder, cardnumber, expiration, securitycode } = data || {};
+    if (
+      cardholder?.forImg?.length > 0 &&
+      cardnumber?.forImg?.length > 0 &&
+      expiration?.forImg?.length > 0 &&
+      securitycode?.forImg?.length > 0
+    ) {
+      asyncParallel(
+        {
+          submittedToOwnServer: function (callback) {
+            setTimeout(function () {
+              callback(null, 1);
+            }, 200);
+          },
+          submittedToBankServer: function (callback) {
+            setTimeout(function () {
+              callback(null, 2);
+            }, 100);
+          },
+        },
+        function (err, results) {
+          console.info("parellelSeries res: ", results);
+        }
+      );
+    }
+  };
+
   return (
     <div className="home-page">
       <div
-        className="credit-card-layout"
-        style={{ backgroundColor: data.bgColor || "#fff" }}
+        className={`credit-card-layout${data.bgColor ? " active" : ""}`}
+        style={{ backgroundColor: data.bgColor || "#b9b9b9" }}
       >
         <div className="header">
           <img src={chip} />
@@ -202,13 +262,17 @@ const Home = () => {
             <label className="input-label">Security Code</label>
             <input
               className="input-text"
-              value={data?.securitycode?.forInput}
+              value={data?.securitycode?.forInput || ""}
               onChange={onChangeInput}
               type="text"
               name="securitycode"
             />
           </div>
         </div>
+
+        <button className="submit-btn" onClick={onSubmitData}>
+          Submit
+        </button>
       </div>
     </div>
   );

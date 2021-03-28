@@ -13,32 +13,60 @@
   border-radius: 10px;
   font-family: monospaced;
   color: #fff;
+  border: 1px solid #f7f7f7;
+  box-shadow: 1px 1px 1px 1px #d2d2d2;
+}
+
+.home-page .credit-card-layout.active {
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    rgba(255, 255, 255, 0.3) 25%,
+    transparent 50%
+  );
+  background-size: 200% 100%;
+  animation: shine 1s infinite linear;
 }
 
 .home-page .credit-card-layout .card-number {
   margin-top: 20px;
 }
 
+.home-page .credit-card-layout .card-number .card-number-masked {
+  font-weight: bold;
+  letter-spacing: 7px;
+  font-family: monospaced;
+  font-size: 26px;
+  margin-top: 4px;
+  min-height: 27px;
+  text-align: center;
+}
+
 .home-page .credit-card-layout .title {
   font-size: 12px;
 }
 
-.home-page .credit-card-layout .card-number-masked {
-  font-weight: bold;
-  letter-spacing: 8px;
-  font-family: monospaced;
-  font-size: 26px;
-  margin-top: 4px;
-}
-
 .home-page .credit-card-layout .cardholder-expiration-masked {
   font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .home-page .credit-card-layout .cardholder-expiration {
   display: flex;
   justify-content: space-between;
   margin-top: 40px;
+  width: 100%;
+  max-width: 370px;
+}
+
+.home-page .credit-card-layout .cardholder-expiration .expiration {
+  width: 50px;
+}
+
+.home-page .credit-card-layout .cardholder-expiration .cardholder {
+  width: calc(100% - 70px);
 }
 
 .home-page .credit-card-layout .header {
@@ -48,13 +76,24 @@
 
 .home-page .credit-card-layout .header img {
   width: 50px;
+  height: 42px;
   background-color: #fff;
   border-radius: 8px;
 }
 
 .home-page .credit-card-form {
   width: 50%;
-  padding: 20px;
+  padding: 0 20px;
+}
+
+.home-page .credit-card-form .submit-btn {
+  background: #009fff;
+  border: 1px solid #009fff;
+  font-size: 16px;
+  color: white;
+  padding: 6px 10px;
+  width: 100%;
+  cursor: pointer;
 }
 
 .home-page .credit-card-form .input-container {
@@ -82,4 +121,10 @@
   padding: 8px 12px;
   margin-top: 6px;
   width: calc(100% - 32px);
+}
+
+@keyframes shine {
+  0% {
+    background-position: right;
+  }
 }
