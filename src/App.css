@@ -121,6 +121,15 @@
   padding: 8px 12px;
   margin-top: 6px;
   width: calc(100% - 32px);
+  border: 1px solid #b9b9b9;
+}
+
+.home-page .credit-card-form .input-text.error {
+  border-color: red;
+}
+
+input:focus {
+  outline: none;
 }
 
 @keyframes shine {

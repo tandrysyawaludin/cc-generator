@@ -48,11 +48,12 @@ const Home = () => {
       realValue: value,
       dataTemp: data,
       trimmedValue: (value || "").trim(),
+      isNotValid: false,
     };
 
     asyncSeries(
       {
-        isValidInput: function (callback) {
+        isNotValidInput: function (callback) {
           dataObj = validateInput(dataObj, name);
           callback(null, 1);
         },
@@ -63,6 +64,7 @@ const Home = () => {
               [name]: {
                 forImg: dataObj.trimmedValue,
                 forInput: dataObj.realValue,
+                isNotValid: dataObj.isNotValid,
               },
             },
           });
@@ -75,7 +77,10 @@ const Home = () => {
     );
   };
 
-  const validateInput = ({ realValue, trimmedValue, dataTemp }, name) => {
+  const validateInput = (
+    { realValue, trimmedValue, dataTemp, isNotValid },
+    name
+  ) => {
     const { cardnumber, cardholder, expiration, securitycode } = dataTemp;
 
     if (name === "securitycode") {
@@ -84,6 +89,7 @@ const Home = () => {
         /\*/g,
         ""
       )}`;
+      isNotValid = trimmedValue.length === 0;
     } else if (name === "cardnumber") {
       const cardNumberObj = formatCardNumber(trimmedValue);
       const userData = {
@@ -102,15 +108,21 @@ const Home = () => {
           )[0],
           ...userData,
         } || userData;
+      isNotValid = dataTemp?.bgColor?.length === 0;
     } else if (name === "expiration") {
       realValue = formatDate(realValue);
       trimmedValue = realValue;
+      isNotValid = realValue.length === 0;
+    } else if (name === "cardholder") {
+      trimmedValue = trimmedValue.toUpperCase();
+      isNotValid = !/(?<! )[-a-zA-Z' ]{2,26}/g.test(realValue);
     }
 
     return {
       realValue,
       trimmedValue,
       dataTemp,
+      isNotValid,
     };
   };
 
@@ -184,6 +196,8 @@ const Home = () => {
           console.info("parellelSeries res: ", results);
         }
       );
+    } else {
+      alert("Complete all inputs");
     }
   };
 
@@ -227,6 +241,9 @@ const Home = () => {
           <label className="input-label">Name</label>
           <input
             className="input-text"
+            className={`input-text${
+              data?.cardholder?.isNotValid ? " error" : ""
+            }`}
             value={data?.cardholder?.forInput || ""}
             onChange={onChangeInput}
             type="text"
@@ -238,7 +255,9 @@ const Home = () => {
           <label className="input-label">Card Number</label>
           <input
             placeholder="•••• •••• •••• ••••"
-            className="input-text"
+            className={`input-text${
+              data?.cardnumber?.isNotValid ? " error" : ""
+            }`}
             value={data?.cardnumber?.forImg || ""}
             onChange={onChangeInput}
             type="text"
